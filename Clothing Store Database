@@ -1,1 +1,22 @@
+CREATE TABLE store (id INTEGER PRIMARY KEY, item TEXT, seasonalstyle TEXT, price INTEGER, quantity INTEGER);
 
+INSERT INTO store VALUES (1, "linen shirt","summer", 59.99, 54);
+INSERT INTO store VALUES (2, "linen shorts","summer", 39.99, 67);
+INSERT INTO store VAlUES (3, "Linen pants", "summer", 59.99, 78);
+INSERT INTO store VAlUES (4, "tank tops", "summer", 24.99, 34);
+INSERT INTO store VAlUES (5, "sandals", "summer", 12.99, 25);
+INSERT INTO store VALUES (6, "sweater", "winter", 45.99, 32);
+INSERT INTO store VALUES (7, "long coat ", "winter", 85.99, 90);
+INSERT INTO store VALUES (8, "sweatpants", "winter", 49.99, 47);
+INSERT INTO store VALUES (9, "beanie", "winter", 29.99, 84);
+INSERT INTO store VALUES (10, "wool jacekt", "winter", 89.99, 29);
+INSERT INTO store VALUES (11, "padded blazer", "winter",99.99, 19);
+INSERT INTO store VALUES (12, "long sleeves", "fall", 12.99, 67);
+INSERT INTO store VALUES (13, "denim jacket", "fall", 60.99, 74);
+INSERT INTO store VALUES (14, "cardigan", "fall", 37.99, 84);
+INSERT INTO store VALUES (15, "burgandy vest", "fall", 29.99, 27);
+
+SELECT MAX(price) FROM store;
+SELECT * FROM store;
+
+SELECT * FROM store WHERE price < 90 and seasonalstyle = "winter";
