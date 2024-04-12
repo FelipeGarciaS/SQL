@@ -1,0 +1,87 @@
+SELECT * FROM BIT_DB.Spotifydata;
+
+/* Question 1: What are the top 10 most popular tracks in the database */ 
+SELECT id, artist_name, track_name, popularity
+FROM BIT_DB.Spotifydata
+ORDER BY popularity desc
+LIMIT 10;
+
+/* Question 2: Which artists have the most diverse range of tempos in their tracks*/
+SELECT artist_name, MAX(tempo) - MIN(tempo) AS tempo_range
+FROM BIT_DB.Spotifydata
+GROUP BY artist_name
+ORDER BY tempo_range desc
+LIMIT 10;
+
+/* Question 3: Which artists have the same popularity in their tracks? */
+SELECT a.artist_name AS Artist1, b.artist_name AS Artist2, a.track_name AS Track1, b.track_name AS Track2  
+FROM BIT_DB.Spotifydata a
+INNER JOIN BIT_DB.Spotifydata b
+ON a.artist_name = b.artist_name
+WHERE a.popularity = b.popularity
+AND a.id < b.id;
+
+/* Question 4: How does the distribution of song durations vary across different time signatures? */
+SELECT time_signature,
+COUNT(*) AS num_songs, 
+MAX(duration_ms) AS max_duration,
+MIN(duration_ms) AS min_duration,
+AVG(duration_ms) AS avg_duration
+FROM BIT_DB.spotifydata
+GROUP BY time_signature;
+
+/* Question 5: What tracks can compare to have a high liveness with a high danceability? */
+SELECT track_name, MAX(liveness),MAX(danceability)
+FROM BIT_DB.Spotifydata
+ORDER BY track_name;
+
+/* Question 6; What are the top 10 artists with the highest average energy in their tracks? */
+SELECT artist_name, AVG(energy) AS avg_energy
+FROM BIT_DB.Spotifydata 
+GROUP BY artist_name
+ORDER BY avg_energy DESC
+LIMIT 10;
+
+/* Question 7: What is the average speechiness of songs with high energy (energy > 0.8) compared to songs with low energy (energy <0.3)?*/
+SELECT 
+    CASE 
+        WHEN energy > 0.8 THEN "High Energy"
+        WHEN energy < 0.3 THEN "Low Energy"
+        END AS energy_type,
+        AVG(speechiness) AS avg_speechiness
+    FROM BIT_DB.Spotifydata
+    GROUP BY energy_type;
+    
+/* Question 8: Which artists have the most songs with a tempo greater than 120 BPM?*/
+SELECT artist_name, tempo, COUNT(*) AS num_songs
+FROM BIT_DB.Spotifydata
+WHERE tempo > 120
+GROUP BY artist_name
+ORDER BY num_songs DESC
+LIMIT 10;
+        
+/* Question 9: What is the average liveness of songs in each time signature?*/ 
+SELECT time_signature, AVG(liveness) AS avg_liveness
+FROM BIT_DB.Spotifydata
+GROUP BY time_signature
+ORDER BY time_signature;
+
+/* Question 10: Which artists have the most diverse range of song keys in their tracks?*/ 
+SELECT artist_name,
+MAX(song_key) + MIN(song_key) AS key_range
+FROM BIT_DB.Spotifydata
+GROUP BY artist_name
+ORDER BY key_range DESC
+LIMIT 10;
+
+/* Question 11: What is the distribution of song durations for tracks with diffrent levels of valence?*/
+SELECT valence,
+CASE 
+     WHEN valence < 0.3 THEN 'Low Valence'
+     WHEN valence >= 0.3 AND valence < 0.7 THEN 'Medium Valence'
+     ELSE 'High Valence'
+ END AS type_valence,
+ COUNT(*) AS num_tracks
+FROM BIT_DB.Spotifydata
+GROUP BY type_valence
+ORDER BY type_valence; 
