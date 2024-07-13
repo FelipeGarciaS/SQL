@@ -1,0 +1,166 @@
+/* Question 1. Which reporting counties have the highest number of collisions?*/
+SELECT county_location, COUNT(*) AS "number of collisions"
+FROM collisions
+GROUP BY county_location
+ORDER BY "number of collisions" DESC;
+
+/* Question 2. What is the relationship between weather conditions and number of collisions*/
+SELECT weather_1, weather_2 , COUNT(*) AS "number of collisions"
+FROM collisions
+WHERE weather_1 IS NOT NULL AND weather_2 IS NOT NULL
+GROUP BY weather_1, weather_2
+ORDER BY "number of collisions"; 
+
+/* Question 3. Whats the total amount of collisions involving alcohol?*/
+SELECT pcf_violation_category, 
+COUNT(*) AS "Alchol involved collisions"
+FROM collisions
+WHERE pcf_violation_category = "dui";
+
+/* Question 4: How does the time of day affect the frequency of collisions?*/ 
+SELECT 
+    CASE 
+        WHEN CAST(strftime("%H", collision_time) AS INTEGER) < 12
+        THEN strftime("%I", collision_time) = "AM"
+        ELSE strftime("%I", collision_time) = "PM"
+        END AS "hour of day", 
+        COUNT(*) AS "collision count"
+FROM collisions
+GROUP BY "hour of day"
+ORDER BY "hour of day";
+
+/*Question 5: What is the average age of victims in different types of collisions?*/
+SELECT col.type_of_collision, ROUND(AVG(vic.victim_age), 0) AS "average victims age"
+FROM collisions col
+INNER JOIN victims vic
+ON col.case_id = vic.case_id
+WHERE col.type_of_collision IS NOT NULL
+GROUP BY col.type_of_collision;
+
+/*Question 6: Which vehicle types are most frequently at fault in collisions?*/
+SELECT statewide_vehicle_type_at_fault, COUNT(*) AS "fault count", chp_vehicle_type_at_fault
+FROM collisions
+WHERE "vehicle_types" IS NOT NULL
+GROUP BY chp_vehicle_type_at_fault, statewide_vehicle_type_at_fault;
+
+/*Question 7: How often do collisions result in fatalities or severe injuries*/
+SELECT collision_severity, SUM(killed_victims) AS "total_fatalities", SUM(injured_victims) AS "total injured"
+FROM collisions 
+GROUP BY collision_severity;
+
+/*Question 8: Which types of vehicles are most commonly involved in collisions for each jurisdiction?*/
+SELECT col.jurisdiction, col.statewide_vehicle_type_at_fault AS "vehicle type at fault", COUNT(*) AS "collision count"
+FROM collisions col
+INNER JOIN parties par
+ON col.case_id = par.case_id
+WHERE col.jurisdiction IS NOT NULL
+GROUP BY col.jurisdiction, par.statewide_vehicle_type
+ORDER BY col.jurisdiction, "collision count" DESC
+LIMIT 500;
+
+/*Question 9: What is the relationship between party sobriety and collision severity?*/ 
+SELECT col.collision_severity, par.party_sobriety, COUNT(*) AS total_collisions
+FROM collisions col
+INNER JOIN parties par
+ON col.case_id = par.case_id
+WHERE col.pcf_violation_category = "dui"
+GROUP BY col.collision_severity, par.party_sobriety
+ORDER BY col.collision_severity, par.party_sobriety;
+
+/*Question 10: How does the distribution of victim injuries vary by the primary collision factor?*/ 
+SELECT col.primary_collision_factor, vic.victim_degree_of_injury, COUNT(*) AS "total collisions"
+FROM collisions col
+INNER JOIN victims vic
+ON col.case_id = vic.case_id
+GROUP BY col.primary_collision_factor, vic.victim_degree_of_injury
+ORDER BY "total collisions" DESC;
+
+/*Question 11: How many collisions occurred in clear weather vs. adverse weather conditions?*/
+SELECT 
+    CASE 
+    WHEN weather_1 = "Clear" THEN "Clear" 
+    ELSE "Adverse"
+    END AS weather_condition,
+    COUNT(*) AS "total collisions"
+    FROM collisions
+    WHERE weather_1 IS NOT NULL
+    GROUP BY weather_condition
+    ORDER BY "total collisions" DESC;
+    
+/* Question 12: What is the average age and of at-fault drivers for each type of collision?*/
+SELECT col.type_of_collision, ROUND(AVG(par.party_age),1) AS "average party age"
+FROM collisions col
+INNER JOIN parties par
+ON col.case_id = par.case_id
+WHERE par.at_fault = '1'
+GROUP BY col.type_of_collision
+ORDER BY col.type_of_collision;
+
+/*Question 13: How many collisions occurred in each reporting district, and what is the average collision severity for each district?*/
+SELECT col.reporting_district,COUNT(*) AS "collision count" ,AVG(col.collision_severity) AS "avg collisions severity"
+FROM collisions col
+INNER JOIN case_ids id
+ON col.case_id = id.case_id
+GROUP BY col.reporting_district
+ORDER BY col.reporting_district;
+
+/*Question 14: What is the monthly trend in the number of collisions over the last five years?*/ 
+SELECT strftime('%m', collision_date) AS month, strftime('%Y', collision_date) AS year, COUNT(*) AS total_collisions
+FROM collisions
+WHERE collision_date >= date('2021-06-03' , '-5 years')
+GROUP BY strftime('%m', collision_date), strftime('%Y', collision_date)
+ORDER BY month;
+
+
+/*Question 15: What is the total number of collisions, and how many of these involved pedestrians, bicyclists, and motorcyclists?*/
+SELECT COUNT(*) AS total_collisions, SUM(pedestrian_collision) AS pedestrian_collisions, SUM(bicycle_collision) AS bicycle_collisions, SUM(motorcycle_collision) AS motorcycle_collisions
+FROM collisions;
+
+
+/*Question 16: What is the average age of victims for each degree of injury?*/
+SELECT victim_degree_of_injury, ROUND(AVG(victim_age),1) AS avg_age
+FROM victims
+GROUP BY victim_degree_of_injury
+ORDER BY avg_age DESC;
+
+
+/*Question 17: What are the top 5 most common primary collision factors in collisions involving at-fault drivers?*/ 
+SELECT col.primary_collision_factor AS "pcf", COUNT(*) AS collision_count, par.at_fault
+FROM collisions col
+INNER JOIN parties par 
+ON col.case_id = par.case_id
+WHERE par.at_fault = 1 AND "pcf" IS NOT NULL
+GROUP BY "pcf"
+ORDER BY collision_count DESC
+LIMIT 5;
+
+
+/*Question 18: What is the distribution of collision severities for different types of roads (e.g., highway, city streets)?*/
+SELECT DISTINCT location_type, collision_severity, COUNT(*) AS total_collisions
+FROM collisions
+WHERE location_type IS NOT NULL
+GROUP BY location_type
+ORDER BY collision_severity;
+
+
+
+/*Question 19: How many collisions resulted in fatalities or severe injuries for each reporting district?*/
+SELECT reporting_district, SUM(killed_victims) AS "total fatalities",SUM(severe_injury_count) AS "total severe injuries"
+FROM collisions
+WHERE reporting_district IS NOT NULL
+GROUP BY reporting_district
+ORDER BY "total fatalities" AND "total severe injuries" DESC;
+
+
+/* Question 20: What are the top 5 most common primary collision factors for collisions that involved a fatality?*/ 
+WITH top_five AS (
+SELECT COUNT(*) AS total_collisions, primary_collision_factor
+FROM collisions
+GROUP BY primary_collision_factor
+ORDER BY total_collisions
+LIMIT 5)
+SELECT col.primary_collision_factor AS "pcf", col.killed_victims
+FROM collisions col
+JOIN top_five tf
+ON col.primary_collision_factor = tf.primary_collision_factor
+WHERE col.killed_victims > 1
