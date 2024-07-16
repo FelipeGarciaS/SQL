@@ -1,5 +1,5 @@
 /* Question 1: Show Customers (their full names, customer ID, and country) who are not in the US. (Hint: != or <> can be used to say "is not equal to").*/
-SELECT FIrstName, LastName, CustomerID, Country
+SELECT FirstName, LastName, CustomerID, Country
 FROM chinook.customers
 WHERE Country <> "USA";
 
