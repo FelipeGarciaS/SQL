@@ -1,89 +1,91 @@
-/* Question 1: Show Customers (their full names, customer ID, and country) who are not in the US. (Hint: != or <> can be used to say "is not equal to").*/
+#Data Source: The data used in this analysis was obtained from the Chinook Database. 
+The Chinook Database is a publicly available sample database designed for educational purposes, 
+featuring tables related to a digital media store. You can find the database here: https://www.kaggle.com/datasets/nancyalaswad90/chinook-sample-database
+
+#Analysis: 
+
+#Customer Information Analysis:
+
+/* 1. I used a WHERE statement to select the full name, customer ID's and the country of customers who are not in the USA.*/
 SELECT FirstName, LastName, CustomerID, Country
 FROM chinook.customers
 WHERE Country <> "USA";
 
-
-/* Question 2: Find the Invoices of customers who are from Brazil. The resulting table should show the customer's full name, Invoice ID, Date of the invoice, and billing country.*/
+/* 2. An INNER JOIN helps find the invoice of customers from Brazil and showing the customer's full name, invoice ID, invoice date, and billing country.*/
 SELECT cust.CustomerId, cust.FirstName, cust.LastName, inv.InvoiceDate, inv.BillingCountry
 FROM chinook.customers cust
 INNER JOIN chinook.invoices inv ON cust.CustomerId= inv.InvoiceId
 WHERE inv.BillingCountry = "Brazil";
 
-/* Question 3: Show the Employees who are Sales Agents.*/ 
+/* 3. A DISTINCT statement is used to get a unique list of billing countries from the invoices table.*/ 
+SELECT DISTINCT BillingCountry 
+FROM chinook.invoices;
+
+/* 4. Counting the total amount of invoices in 2009 with a WHERE and COUNT statements.*/
+SELECT COUNT(*) AS TotalInvoices
+FROM chinook.invoices
+WHERE InvoiceDate BETWEEN '2009-01-01' AND '2009-12-31';
+
+/* 5. Finding the total number of invoices in each billling city using the COUNT function and ordering by the total number of invoices in ascending order using the GROUP BY statement.*/ 
+SELECT BillingCity, COUNT(*) AS Total_Invoices
+FROM chinook.invoices 
+GROUP BY BillingCity
+ORDER BY Total_Invoices ASC;
+
+/* 6. Analyzing the distribution of invoices over the past year by counting the number of invoices issued each month and ordering them by year and month using a WHERE, ORDER BY, GROUP BY and strftime statement */
+SELECT strftime('%Y',InvoiceDate) AS Invoice_Year, strftime('%m',InvoiceDate) AS Invoice_Month, COUNT(*) AS Invoices
+FROM chinook.invoices
+WHERE InvoiceDate >= date('2013-12-22', '-1 year')
+GROUP BY Invoice_Year, Invoice_Month
+ORDER BY Invoice_Year ASC, Invoice_Month ASC;
+
+/* 7.  Finding the amount of customers who have made repeat purchases with a INNER JOIN and the GROUP BY statement, showing their full name, the date of their last purchase and the total amount of their purchase.*/
+SELECT cus.FirstName, cus.LastName, inv.InvoiceDate, inv.Total, COUNT(inv.InvoiceId) AS Repeat_Purchases
+FROM chinook.customers cus
+INNER JOIN chinook.invoices inv ON cus.CustomerId = inv.CustomerId
+GROUP BY cus.CustomerId, cus.FirstName, cus.LastName
+HAVING COUNT(InvoiceId) > 1;
+
+/* 8. Listing customers who have not made any purchases in the last six months involves using an INNER JOIN and a GROUP BY statement, with their full name, and the date of their most recent transaction.*/
+SELECT cus.FirstName, cus.LastName, MAX(inv.InvoiceDate) AS Last_Purchase_Date
+FROM chinook.invoices inv
+INNER JOIN chinook.customers cus ON cus.CustomerId = inv.CustomerId
+GROUP BY cus.CustomerId, cus.FirstName, cus.LastName
+HAVING MAX(inv.InvoiceDate) < date("2013-12-22",'-6 month');
+
+# Employee/Company Information Analysis:
+
+/* 1. Finding the youngest employee using the ORDER BY and LIMIT statement, showing their full name and birthdate. */
+SELECT FirstName, LastName, BirthDate
+FROM chinook.employees
+ORDER BY BirthDate ASC
+LIMIT 1;
+
+/* 2. Selecting only the Sales Support Agent employees using the WHERE statement and their employee ID and full name.*/ 
 SELECT EmployeeId, FirstName, LastName, title
 FROM chinook.employees
 WHERE employees.title = "Sales Support Agent";
 
-
-
-/*Question 4: Show the total sales made by each sales agent.*/
+/* 3. The total sales made by each sales agent are calculated using the SUM function. I used the INNER JOIN with a GROUP BY statement to display their full name and the total sales figure.*/
 SELECT emp.FirstName, emp.LastName, SUM(inv.total) AS total_sales
 FROM chinook.invoices inv
 INNER JOIN chinook.employees emp ON inv.InvoiceId = emp.EmployeeId
 WHERE emp.Title = "Sales Support Agent"
 GROUP BY emp.FirstName;
 
-/* Question 5: Provide a query that shows all the Tracks, and include the Album name, Media type, and Genre.*/
-SELECT tr.TrackId AS 'Tracks', al.title AS 'Album Title', mt.Name AS 'Media Type', ge.Name AS 'Genre Name'
-FROM chinook.tracks tr
-JOIN chinook.albums al ON tr.AlbumId = al.AlbumId
-JOIN chinook.media_types mt ON tr.MediaTypeId = mt.MediaTypeId
-JOIN chinook.genres ge ON tr.GenreId = ge.GenreId; 
-
-/* Question 6: Write a query that includes the purchased track name with each invoice line ID.*/
-SELECT tr.Name AS "Purchased Track", it.InvoiceLineId
-FROM chinook.tracks tr
-INNER JOIN invoice_items it ON tr.TrackId = it.InvoiceLineId
-ORDER BY it.InvoiceLineId DESC;
-
-
-/* Question 7: Find a unique/distinct list of billing countries from the Invoice table.*/ 
-SELECT DISTINCT BillingCountry 
-FROM chinook.invoices;
-
-
-/* Question 8: How many Invoices were there in 2009?*/
-SELECT COUNT(*) AS TotalInvoices
-FROM chinook.invoices
-WHERE InvoiceDate BETWEEN '2009-01-01' AND '2009-12-31';
-
-/* Question 9: What are the total sales for 2009?*/ 
-SELECT SUM(Total) AS TotalSales2009
-FROM chinook.invoices
-WHERE InvoiceDate BETWEEN '2009-01-01' AND '2009-12-31';
-
-/* Question 10: Which sales agent made the most dollars in sales in 2010?*/
+/* 4. The top sales agent in 2010 based on sales in dollars, is identified with an INNER JOIN and a WHERE statement. Including their employee ID, full name, title, and total sales amount.*/
 SELECT emp.EmployeeId, emp.FirstName, emp.LastName, emp.title, SUM(inv.total) AS TotalSales, inv.InvoiceDate
 FROM chinook.employees emp
 INNER JOIN chinook.invoices inv ON emp.EmployeeId = inv.total
 WHERE emp.title = "Sales Support Agent" 
 WHERE inv.InvoiceDate BETWEEN '2013-01-01' AND '2013-12-31';
 
-/*Question 11: How many genres are there in the database?*/
-SELECT COUNT(*) AS Total_Genres
-FROM chinook.genres;
+/* 5. Calculating the total sales for 2009 using a WHERE clause and SUM() function.*/  
+SELECT SUM(Total) AS TotalSales2009
+FROM chinook.invoices
+WHERE InvoiceDate BETWEEN '2009-01-01' AND '2009-12-31';
 
-/*Question 12: Who is the youngest employee in the database?*/
-SELECT FirstName, LastName, BirthDate
-FROM chinook.employees
-ORDER BY BirthDate ASC
-LIMIT 1;
-
-/*Question 13: What is the longest track duration in milliseconds?*/ 
-SELECT Name, Milliseconds
-FROM chinook.tracks
-ORDER BY Milliseconds DESC
-LIMIT 1;
-
-/*Question 14: What is the total number of invoices issued in each billing city?*/ 
-SELECT BillingCity, COUNT(*) AS Total_Invoices
-FROM chinook.invoices 
-GROUP BY BillingCity
-ORDER BY Total_Invoices ASC;
-
-
-/*Question 15: What are the total sales for each album?*/
+/* 6. Calculating the total sales for each album using multiple JOINS and a GROUP BY statement. Showing the album title with its total sales.*/
 WITH Album_Sales AS(
 SELECT al.Title AS Albums, SUM(ii.Quantity * ii.UnitPrice) AS Total_Sales
 FROM chinook.invoice_items ii
@@ -95,47 +97,42 @@ ORDER BY Total_Sales DESC
 SELECT Albums, Total_Sales
 FROM Album_Sales;
 
+#Music Information Analysis: 
 
-/*Question 16: Who are the Top Artist by album count?*/ 
+/* 1. Listing all tracks and including the album name, media type, and genre using multiple JOINs.*/
+SELECT tr.TrackId AS 'Tracks', al.title AS 'Album Title', mt.Name AS 'Media Type', ge.Name AS 'Genre Name'
+FROM chinook.tracks tr
+JOIN chinook.albums al ON tr.AlbumId = al.AlbumId
+JOIN chinook.media_types mt ON tr.MediaTypeId = mt.MediaTypeId
+JOIN chinook.genres ge ON tr.GenreId = ge.GenreId; 
+
+/* 2. Selecting the purchased track name with each invoice line ID using an INNER JOIN, sorted in descending order using the ORDER BY statement.*/
+SELECT tr.Name AS "Purchased Track", it.InvoiceLineId
+FROM chinook.tracks tr
+INNER JOIN invoice_items it ON tr.TrackId = it.InvoiceLineId
+ORDER BY it.InvoiceLineId DESC;
+
+/* 3. Selecting the total amount of geners using a COUNT function.*/
+SELECT COUNT(*) AS Total_Genres
+FROM chinook.genres;
+
+/* 4. The longest track duration in milliseconds found using ORDER BY statement with LIMIT 1 displaying the track name and duration. */ 
+SELECT Name, Milliseconds
+FROM chinook.tracks
+ORDER BY Milliseconds DESC
+LIMIT 1;
+
+/* 5. Selecting the top artist by the number of albums with a INNER JOIN and a GROUP BY statement. Showing the artist's name and the count of their albums, in descending order of album count.*/ 
 SELECT ar.Name AS Artist_Name, COUNT(DISTINCT al.Title) AS Album_Count
 FROM chinook.artists ar
 INNER JOIN chinook.albums al ON ar.ArtistID = al.ArtistId 
 GROUP BY ar.Name
 ORDER BY COUNT(DISTINCT al.Title) DESC;
 
-/*Question 17:  Determine the amount of customers who have made repeat purchases more than one invoice*/
-SELECT cus.FirstName, cus.LastName, inv.InvoiceDate, inv.Total, COUNT(inv.InvoiceId) AS Repeat_Purchases
-FROM chinook.customers cus
-INNER JOIN chinook.invoices inv ON cus.CustomerId = inv.CustomerId
-GROUP BY cus.CustomerId, cus.FirstName, cus.LastName
-HAVING COUNT(InvoiceId) > 1;
-
-
-
-/*Question 18: Find albums that contain tracks from at least three different genres.*/
+/* 6. Selecting the albums that contain three different genres done using multiple JOINS, GROUP BY statement and the COUNT function to display the album name with the count of distinct genres.*/
 SELECT tr.Name AS Track_Name, al.Title AS Album, COUNT(DISTINCT ge.Name) AS Genre
 FROM chinook.tracks tr
 INNER JOIN chinook.genres ge ON tr.GenreId = ge.GenreId
 INNER JOIN chinook.albums al ON tr.AlbumId = al.AlbumId
 GROUP BY al.Title, al.ALbumId
 HAVING COUNT(DISTINCT ge.GenreId)>= 3;
-
-/*Question 19: List customers who have not made any purchases in the last six monts*/
-SELECT 
-cus.FirstName, 
-cus.LastName, 
-MAX(inv.InvoiceDate) AS Last_Purchase_Date
-FROM chinook.invoices inv
-INNER JOIN chinook.customers cus ON cus.CustomerId = inv.CustomerId
-GROUP BY cus.CustomerId, cus.FirstName, cus.LastName
-HAVING MAX(inv.InvoiceDate) < date("2013-12-22",'-6 month');
-
-/*Questiion 20:  Analyze the distribution of invoice frequencies (e.g., number of invoices per month) over the past year.*/
-SELECT 
-strftime('%Y',InvoiceDate) AS Invoice_Year, 
-strftime('%m',InvoiceDate) AS Invoice_Month, 
-COUNT(*) AS Invoices
-FROM chinook.invoices
-WHERE InvoiceDate >= date('2013-12-22', '-1 year')
-GROUP BY Invoice_Year, Invoice_Month
-ORDER BY Invoice_Year ASC, Invoice_Month ASC;
