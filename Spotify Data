@@ -1,27 +1,18 @@
-SELECT * FROM BIT_DB.Spotifydata;
+#Data Source: The data used in this analysis was sourced from the Spotify Database. 
+The Spotify Database is a available sample database created for educational purposes, containing tracks of 125 genres and all of their information.
+You can find the database on Kaggle: https://www.kaggle.com/datasets/maharshipandya/-spotify-tracks-dataset
 
-/* Question 1: What are the top 10 most popular tracks in the database */ 
+#Analysis:
+
+#Song Analysis:
+
+/* 1. Using the ORDER BY statement with DESC to filter the most popular tracks and the LIMIT statement to select only the top 10.*/ 
 SELECT id, artist_name, track_name, popularity
 FROM BIT_DB.Spotifydata
 ORDER BY popularity desc
 LIMIT 10;
 
-/* Question 2: Which artists have the most diverse range of tempos in their tracks*/
-SELECT artist_name, MAX(tempo) - MIN(tempo) AS tempo_range
-FROM BIT_DB.Spotifydata
-GROUP BY artist_name
-ORDER BY tempo_range desc
-LIMIT 10;
-
-/* Question 3: Which artists have the same popularity in their tracks? */
-SELECT a.artist_name AS Artist1, b.artist_name AS Artist2, a.track_name AS Track1, b.track_name AS Track2  
-FROM BIT_DB.Spotifydata a
-INNER JOIN BIT_DB.Spotifydata b
-ON a.artist_name = b.artist_name
-WHERE a.popularity = b.popularity
-AND a.id < b.id;
-
-/* Question 4: How does the distribution of song durations vary across different time signatures? */
+/* 2. Finding how the different time signatures distribution vary during the duration of the song using the MAX, MIN and AVG aggregates to calculate the duration of songs. With the GROUP BY to organize them by time_signature.*/
 SELECT time_signature,
 COUNT(*) AS num_songs, 
 MAX(duration_ms) AS max_duration,
@@ -30,19 +21,12 @@ AVG(duration_ms) AS avg_duration
 FROM BIT_DB.spotifydata
 GROUP BY time_signature;
 
-/* Question 5: What tracks can compare to have a high liveness with a high danceability? */
+/* 3. Tracks that compare to have a high liveness with a high danceability using the MAX aggregate to calculate both liveness and dancebility. With the ORDER BY statement to organize by track_name.*/
 SELECT track_name, MAX(liveness),MAX(danceability)
 FROM BIT_DB.Spotifydata
 ORDER BY track_name;
 
-/* Question 6; What are the top 10 artists with the highest average energy in their tracks? */
-SELECT artist_name, AVG(energy) AS avg_energy
-FROM BIT_DB.Spotifydata 
-GROUP BY artist_name
-ORDER BY avg_energy DESC
-LIMIT 10;
-
-/* Question 7: What is the average speechiness of songs with high energy (energy > 0.8) compared to songs with low energy (energy <0.3)?*/
+/* 4. Finding the average speechiness of songs with high energy (energy > 0.8) compared to songs with low energy (energy <0.3). Using a CASE statement to select the "High Energy" and "Low Energy". Organizing with the GROUP BY statement by energy_type.*/
 SELECT 
     CASE 
         WHEN energy > 0.8 THEN "High Energy"
@@ -51,30 +35,22 @@ SELECT
         AVG(speechiness) AS avg_speechiness
     FROM BIT_DB.Spotifydata
     GROUP BY energy_type;
-    
-/* Question 8: Which artists have the most songs with a tempo greater than 120 BPM?*/
+
+/* 5. The average liveness of songs in each time signature is found by using the AVG aggregate and organize them by time_signature with the GROUP BY and ORDER BY statement.*/ 
+SELECT time_signature, AVG(liveness) AS avg_liveness
+FROM BIT_DB.Spotifydata
+GROUP BY time_signature
+ORDER BY time_signature;
+
+/* 6. With the COUNT statement I get the total of songs and using the WHERE statement to get the songs that have a tempo greater than 120 BPM. Using the GROUP BY it organizes them by artit_name and with the LIMIT statement I get the top 10 songs with a 120 BPM.*/
 SELECT artist_name, tempo, COUNT(*) AS num_songs
 FROM BIT_DB.Spotifydata
 WHERE tempo > 120
 GROUP BY artist_name
 ORDER BY num_songs DESC
 LIMIT 10;
-        
-/* Question 9: What is the average liveness of songs in each time signature?*/ 
-SELECT time_signature, AVG(liveness) AS avg_liveness
-FROM BIT_DB.Spotifydata
-GROUP BY time_signature
-ORDER BY time_signature;
 
-/* Question 10: Which artists have the most diverse range of song keys in their tracks?*/ 
-SELECT artist_name,
-MAX(song_key) + MIN(song_key) AS key_range
-FROM BIT_DB.Spotifydata
-GROUP BY artist_name
-ORDER BY key_range DESC
-LIMIT 10;
-
-/* Question 11: What is the distribution of song durations for tracks with diffrent levels of valence?*/
+/* 7. The distribution of song durations for tracks with diffrent levels of valence is found with the CASE statement by 'Low Valence', 'Medium Valence', and 'High Valence'. With the GROUP BY and ORDER BY statements to organize by type_valence.*/
 SELECT valence,
 CASE 
      WHEN valence < 0.3 THEN 'Low Valence'
@@ -85,3 +61,37 @@ CASE
 FROM BIT_DB.Spotifydata
 GROUP BY type_valence
 ORDER BY type_valence; 
+
+#Artist Analysis: 
+
+/* 1. Finding which artists has the most diverse range of tempos in their tracks using the MAX and MIN aggregate with the ORDER BY statement to filter the DESC tempo range.*/
+SELECT artist_name, MAX(tempo) - MIN(tempo) AS tempo_range
+FROM BIT_DB.Spotifydata
+GROUP BY artist_name
+ORDER BY tempo_range desc
+LIMIT 10;
+
+/* 2. With the INNER JOIN I'm able to find which artists have the same popularity in their tracks with the WHERE statement to select the popularity of songs.*/
+SELECT a.artist_name AS Artist1, b.artist_name AS Artist2, a.track_name AS Track1, b.track_name AS Track2  
+FROM BIT_DB.Spotifydata a
+INNER JOIN BIT_DB.Spotifydata b
+ON a.artist_name = b.artist_name
+WHERE a.popularity = b.popularity
+AND a.id < b.id;
+
+/* 3. Using the AVG aggregate to calculate the energy per track. With the ORDER BY statement and DESC to filter the average high energy tracks and the LIMIT statement to select only the top 10 artist.*/
+SELECT artist_name, AVG(energy) AS avg_energy
+FROM BIT_DB.Spotifydata 
+GROUP BY artist_name
+ORDER BY avg_energy DESC
+LIMIT 10;
+
+
+/* 4. The artists that have the most diverse range of song keys in their tracks can be found with adding both the MAX and MIN song_key and using the ORDER BY statement to organize per diverse range of songs. Selecting the top 10 with the LIMIT statement.*/ 
+SELECT artist_name,
+MAX(song_key) + MIN(song_key) AS key_range
+FROM BIT_DB.Spotifydata
+GROUP BY artist_name
+ORDER BY key_range DESC
+LIMIT 10;
+
