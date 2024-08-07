@@ -1,4 +1,4 @@
-This project made use of data sourced from the Netflix dataset mentioned below:
+#This project made use of data sourced from the Netflix dataset mentioned below:
 CREATE TABLE netflix_titles_info
     ("show_id" varchar(5), "type" varchar(7), "title" varchar(58), "country" varchar(74), "date_added" timestamp, "release_year" int, "rating" varchar(5), "duration" varchar(9), "listed_in" varchar(74))
 ;
@@ -58,33 +58,30 @@ VALUES
     ;
 
 
-SELECT * FROM "netflix_titles_info" LIMIT 5;
-SELECT * FROM "netflix_people" LIMIT 5;
 
-/** my own join*/ 
-
-SELECT info.show_id, info.type, people.director
+/* 1. Retrieving the show IDs, type, and directors of up to 5 Netflix titles by using an INNER JOIN where the show IDs match.*/
+SELECT info.show_id, info.type, people.director 
 FROM "netflix_titles_info" info
 INNER JOIN "netflix_people" people
 ON info.show_id = people.show_id
 LIMIT 5;
 
-/** question #1 How many movie titles are there in the database? (movies only, not tv shows).*/ 
+/* 2. Selecting only movies in the database using the WHERE statement.*/ 
 SELECT COUNT("title")
 FROM "netflix_titles_info"
 WHERE type = 'Movie';
 
-/** question #2 When was the most recent batch of tv shows and/or movies added to the database? */ 
+/* 3. Finding the most recent shows that released using the MAX aggregate.*/ 
 SELECT MAX(date(date_added))
 FROM "netflix_titles_info";
 
 
-/** question #3 List all the movies and tv shows in alphabetical order.*/ 
+/* 4. Selecting all movies and shows by alphabetical order using the ORDER BY statement.*/ 
 SELECT type, title
 FROM "netflix_titles_info"
 ORDER BY title;
 
-/** question #4 Who was the Director for the movie The Starling?*/ 
+/* 5. Finding who the Director for the movie The Starling using a LEFT JOIN to select only the directors and using the WHERE statement to select The Starling.*/ 
 SELECT director
 FROM "netflix_titles_info" info
 LEFT JOIN "netflix_people" people
@@ -92,7 +89,7 @@ ON info.show_id = people.show_id
 WHERE info.title = 'The Starling'; 
 
 
-/** question #5 What is the oldest movie in the database and what year was it made?*/ 
+/* 6. The oldest movie in the database and the year it was released by using an ORDER BY statement.*/ 
 SELECT show_id, title, release_year
 FROM "netflix_titles_info"
 ORDER BY release_year
