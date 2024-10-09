@@ -1,8 +1,55 @@
-/* Question 1. Which reporting counties have the highest number of collisions?*/
+#Data Source: The data used for this analysis was sourced from The California Traffic Collision Data from SWITRS. This database contains information about traffic collisions reported by the CHP. 
+You can find this data available on kaggle: https://www.kaggle.com/datasets/alexgude/california-traffic-collision-data-from-switrs 
+
+#Analysis:
+
+
+#County and District Analysis:
+
+/* 1. To find which reporting counties have the highest number of collisions I used the COUNT function to get the total number of collisions and with the GROUP BY and ORDER BY clause I organize them by total collisions in descending order.*/
 SELECT county_location, COUNT(*) AS "number of collisions"
 FROM collisions
 GROUP BY county_location
 ORDER BY "number of collisions" DESC;
+
+/* 2. Finding how many collisions occurred in each reporting district I used the COUNT function and for the average collision severity for each district I used the AVG function. Using the INNER JOIN, GROUP BY and ORDER BY clauses I'm able to filter the results by each reporting district.*/
+SELECT col.reporting_district,COUNT(*) AS "collision count" ,AVG(col.collision_severity) AS "avg collisions severity"
+FROM collisions col
+INNER JOIN case_ids id
+ON col.case_id = id.case_id
+GROUP BY col.reporting_district
+ORDER BY col.reporting_district;
+
+/* 3. Analyzing how many collisions resulted in fatalities or severe injuries for each reporting district I used the SUM aggregates to find the total fatalities and severe injury count. With the WHERE and GROUP BY clause I filter them by reporting district and with the ORDER BY clause I organize them by fatalities and severe injuries in descending order by districts.*/
+SELECT reporting_district, SUM(killed_victims) AS "total fatalities",SUM(severe_injury_count) AS "total severe injuries"
+FROM collisions
+WHERE reporting_district IS NOT NULL
+GROUP BY reporting_district
+ORDER BY "total fatalities" AND "total severe injuries" DESC;
+
+
+#Weather and Time Analysis:
+
+
+
+
+#Collision Severity and Factors:
+
+
+
+#Alcohol and Sobriety Analysis: 
+
+
+
+
+#Victim and Party Demographics Analysis: 
+
+
+
+
+#Vehicle Types and Jurisdiction Analysis: 
+
+
 
 /* Question 2. What is the relationship between weather conditions and number of collisions*/
 SELECT weather_1, weather_2 , COUNT(*) AS "number of collisions"
@@ -96,13 +143,7 @@ WHERE par.at_fault = '1'
 GROUP BY col.type_of_collision
 ORDER BY col.type_of_collision;
 
-/*Question 13: How many collisions occurred in each reporting district, and what is the average collision severity for each district?*/
-SELECT col.reporting_district,COUNT(*) AS "collision count" ,AVG(col.collision_severity) AS "avg collisions severity"
-FROM collisions col
-INNER JOIN case_ids id
-ON col.case_id = id.case_id
-GROUP BY col.reporting_district
-ORDER BY col.reporting_district;
+
 
 /*Question 14: What is the monthly trend in the number of collisions over the last five years?*/ 
 SELECT strftime('%m', collision_date) AS month, strftime('%Y', collision_date) AS year, COUNT(*) AS total_collisions
@@ -144,12 +185,7 @@ ORDER BY collision_severity;
 
 
 
-/*Question 19: How many collisions resulted in fatalities or severe injuries for each reporting district?*/
-SELECT reporting_district, SUM(killed_victims) AS "total fatalities",SUM(severe_injury_count) AS "total severe injuries"
-FROM collisions
-WHERE reporting_district IS NOT NULL
-GROUP BY reporting_district
-ORDER BY "total fatalities" AND "total severe injuries" DESC;
+
 
 
 /* Question 20: What are the top 5 most common primary collision factors for collisions that involved a fatality?*/ 
