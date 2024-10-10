@@ -30,6 +30,43 @@ ORDER BY "total fatalities" AND "total severe injuries" DESC;
 
 #Weather and Time Analysis:
 
+/* 1. To analyze the relationship between weather conditions and number of collisions I utilized the COUNT function to gather the total number of collisions. Using the WHERE, GROUP BY and ORDER BY I filter the results by weather and the number of collisions.*/
+SELECT weather_1, weather_2 , COUNT(*) AS "number of collisions"
+FROM collisions
+WHERE weather_1 IS NOT NULL AND weather_2 IS NOT NULL
+GROUP BY weather_1, weather_2
+ORDER BY "number of collisions"; 
+
+/* 2. To find how many collisions occurred in clear weather vs. adverse weather conditions I used the CASE statement to help filter the weather conditions. Using the COUNT function I get the total collisions and with the WHERE, GROUP and ORDER BY clause it organizes the data by weather condition and total collisions in descending order.*/
+SELECT 
+    CASE 
+    WHEN weather_1 = "Clear" THEN "Clear" 
+    ELSE "Adverse"
+    END AS weather_condition,
+    COUNT(*) AS "total collisions"
+    FROM collisions
+    WHERE weather_1 IS NOT NULL
+    GROUP BY weather_condition
+    ORDER BY "total collisions" DESC;
+
+/* 3. Analyzing how the time of day affects the frequency of collisions I used the CASE statement to get the collision time and filter it by AM and PM. With the GROUP and ORDER BY clause I'm able to organize it by hour of the day.*/ 
+SELECT 
+    CASE 
+        WHEN CAST(strftime("%H", collision_time) AS INTEGER) < 12
+        THEN strftime("%I", collision_time) = "AM"
+        ELSE strftime("%I", collision_time) = "PM"
+        END AS "hour of day", 
+        COUNT(*) AS "collision count"
+FROM collisions
+GROUP BY "hour of day"
+ORDER BY "hour of day";
+
+/* 4. The monthly trend in the number of collisions over the last five years can be found using the strftime function to get the month and year. With the WHERE clause I can calculate the collision date over the past 5 years. Using both the GROUP and ORDER BY I can filter it by collision date.*/ 
+SELECT strftime('%m', collision_date) AS month, strftime('%Y', collision_date) AS year, COUNT(*) AS total_collisions
+FROM collisions
+WHERE collision_date >= date('2021-06-03' , '-5 years')
+GROUP BY strftime('%m', collision_date), strftime('%Y', collision_date)
+ORDER BY month;
 
 
 
@@ -51,12 +88,7 @@ ORDER BY "total fatalities" AND "total severe injuries" DESC;
 
 
 
-/* Question 2. What is the relationship between weather conditions and number of collisions*/
-SELECT weather_1, weather_2 , COUNT(*) AS "number of collisions"
-FROM collisions
-WHERE weather_1 IS NOT NULL AND weather_2 IS NOT NULL
-GROUP BY weather_1, weather_2
-ORDER BY "number of collisions"; 
+
 
 /* Question 3. Whats the total amount of collisions involving alcohol?*/
 SELECT pcf_violation_category, 
@@ -64,17 +96,7 @@ COUNT(*) AS "Alchol involved collisions"
 FROM collisions
 WHERE pcf_violation_category = "dui";
 
-/* Question 4: How does the time of day affect the frequency of collisions?*/ 
-SELECT 
-    CASE 
-        WHEN CAST(strftime("%H", collision_time) AS INTEGER) < 12
-        THEN strftime("%I", collision_time) = "AM"
-        ELSE strftime("%I", collision_time) = "PM"
-        END AS "hour of day", 
-        COUNT(*) AS "collision count"
-FROM collisions
-GROUP BY "hour of day"
-ORDER BY "hour of day";
+
 
 /*Question 5: What is the average age of victims in different types of collisions?*/
 SELECT col.type_of_collision, ROUND(AVG(vic.victim_age), 0) AS "average victims age"
@@ -90,7 +112,7 @@ FROM collisions
 WHERE "vehicle_types" IS NOT NULL
 GROUP BY chp_vehicle_type_at_fault, statewide_vehicle_type_at_fault;
 
-/*Question 7: How often do collisions result in fatalities or severe injuries*/
+/* 1. How often do collisions result in fatalities or severe injuries*/
 SELECT collision_severity, SUM(killed_victims) AS "total_fatalities", SUM(injured_victims) AS "total injured"
 FROM collisions 
 GROUP BY collision_severity;
@@ -122,17 +144,7 @@ ON col.case_id = vic.case_id
 GROUP BY col.primary_collision_factor, vic.victim_degree_of_injury
 ORDER BY "total collisions" DESC;
 
-/*Question 11: How many collisions occurred in clear weather vs. adverse weather conditions?*/
-SELECT 
-    CASE 
-    WHEN weather_1 = "Clear" THEN "Clear" 
-    ELSE "Adverse"
-    END AS weather_condition,
-    COUNT(*) AS "total collisions"
-    FROM collisions
-    WHERE weather_1 IS NOT NULL
-    GROUP BY weather_condition
-    ORDER BY "total collisions" DESC;
+
     
 /* Question 12: What is the average age and of at-fault drivers for each type of collision?*/
 SELECT col.type_of_collision, ROUND(AVG(par.party_age),1) AS "average party age"
@@ -145,12 +157,7 @@ ORDER BY col.type_of_collision;
 
 
 
-/*Question 14: What is the monthly trend in the number of collisions over the last five years?*/ 
-SELECT strftime('%m', collision_date) AS month, strftime('%Y', collision_date) AS year, COUNT(*) AS total_collisions
-FROM collisions
-WHERE collision_date >= date('2021-06-03' , '-5 years')
-GROUP BY strftime('%m', collision_date), strftime('%Y', collision_date)
-ORDER BY month;
+
 
 
 /*Question 15: What is the total number of collisions, and how many of these involved pedestrians, bicyclists, and motorcyclists?*/
