@@ -69,9 +69,40 @@ GROUP BY strftime('%m', collision_date), strftime('%Y', collision_date)
 ORDER BY month;
 
 
-
 #Collision Severity and Factors:
 
+/* 1. To find how often collisions result in fatalities and severe injuried victims I used the SUM aggregate to find the total fatalities and total injured and I organize them with the GROUP BY clause by the collision severity.*/
+SELECT collision_severity, SUM(killed_victims) AS "total_fatalities", SUM(injured_victims) AS "total injured"
+FROM collisions 
+GROUP BY collision_severity;
+
+/*2. To get the distribution of victim injuries to vary by the primary collision factor I used the COUNT function to get the total collisions and with the INNER JOIN im able to join the Victims table and group them by injuries based on thier collisions and organize them with the ORDER BY of total collisions in descending order.*/ 
+SELECT col.primary_collision_factor, vic.victim_degree_of_injury, COUNT(*) AS "total collisions"
+FROM collisions col
+INNER JOIN victims vic
+ON col.case_id = vic.case_id
+GROUP BY col.primary_collision_factor, vic.victim_degree_of_injury
+ORDER BY "total collisions" DESC;
+
+/* 3. To analyze the distribution of collision severities for different types of roads (e.g., highway, city streets) I used the COUNT function the get the total collisions and group them by their location type and order by the collision severity.*/
+SELECT DISTINCT location_type, collision_severity, COUNT(*) AS total_collisions
+FROM collisions
+WHERE location_type IS NOT NULL
+GROUP BY location_type
+ORDER BY collision_severity;
+
+/* 4. Using a CTE I'm able to analyze what the top 5 most common primary collision factors for collisions that involved a fatality. Creating first the top_five table to get the result set, I then count how many total collisions are related to the top five factors by joining the top_five results to the collisions table.*/ 
+WITH top_five AS (
+SELECT COUNT(*) AS total_collisions, primary_collision_factor
+FROM collisions
+GROUP BY primary_collision_factor
+ORDER BY total_collisions
+LIMIT 5)
+SELECT col.primary_collision_factor AS "pcf", col.killed_victims
+FROM collisions col
+JOIN top_five tf
+ON col.primary_collision_factor = tf.primary_collision_factor
+WHERE col.killed_victims > 1
 
 
 #Alcohol and Sobriety Analysis: 
@@ -90,7 +121,7 @@ ORDER BY month;
 
 
 
-/* Question 3. Whats the total amount of collisions involving alcohol?*/
+/* 1. Whats the total amount of collisions involving alcohol?*/
 SELECT pcf_violation_category, 
 COUNT(*) AS "Alchol involved collisions"
 FROM collisions
@@ -112,10 +143,7 @@ FROM collisions
 WHERE "vehicle_types" IS NOT NULL
 GROUP BY chp_vehicle_type_at_fault, statewide_vehicle_type_at_fault;
 
-/* 1. How often do collisions result in fatalities or severe injuries*/
-SELECT collision_severity, SUM(killed_victims) AS "total_fatalities", SUM(injured_victims) AS "total injured"
-FROM collisions 
-GROUP BY collision_severity;
+
 
 /*Question 8: Which types of vehicles are most commonly involved in collisions for each jurisdiction?*/
 SELECT col.jurisdiction, col.statewide_vehicle_type_at_fault AS "vehicle type at fault", COUNT(*) AS "collision count"
@@ -136,13 +164,7 @@ WHERE col.pcf_violation_category = "dui"
 GROUP BY col.collision_severity, par.party_sobriety
 ORDER BY col.collision_severity, par.party_sobriety;
 
-/*Question 10: How does the distribution of victim injuries vary by the primary collision factor?*/ 
-SELECT col.primary_collision_factor, vic.victim_degree_of_injury, COUNT(*) AS "total collisions"
-FROM collisions col
-INNER JOIN victims vic
-ON col.case_id = vic.case_id
-GROUP BY col.primary_collision_factor, vic.victim_degree_of_injury
-ORDER BY "total collisions" DESC;
+
 
 
     
@@ -183,27 +205,11 @@ ORDER BY collision_count DESC
 LIMIT 5;
 
 
-/*Question 18: What is the distribution of collision severities for different types of roads (e.g., highway, city streets)?*/
-SELECT DISTINCT location_type, collision_severity, COUNT(*) AS total_collisions
-FROM collisions
-WHERE location_type IS NOT NULL
-GROUP BY location_type
-ORDER BY collision_severity;
 
 
 
 
 
 
-/* Question 20: What are the top 5 most common primary collision factors for collisions that involved a fatality?*/ 
-WITH top_five AS (
-SELECT COUNT(*) AS total_collisions, primary_collision_factor
-FROM collisions
-GROUP BY primary_collision_factor
-ORDER BY total_collisions
-LIMIT 5)
-SELECT col.primary_collision_factor AS "pcf", col.killed_victims
-FROM collisions col
-JOIN top_five tf
-ON col.primary_collision_factor = tf.primary_collision_factor
-WHERE col.killed_victims > 1
+
+
