@@ -107,7 +107,20 @@ WHERE col.killed_victims > 1
 
 #Alcohol and Sobriety Analysis: 
 
+/* 1. The results to find the total amount of collisions involving alcohol I used the COUNT to get the total collisions and WHERE to filter the collisions that involved a "dui".*/
+SELECT pcf_violation_category, 
+COUNT(*) AS "Alchol involved collisions"
+FROM collisions
+WHERE pcf_violation_category = "dui";
 
+/* 2. To analyze the relationship between party sobriety and collision severity I count the total collisions for each combination of collision severity and party sobriety. Joining the collisions and parties table using the case_id to retrieve the number of collisions where the primary factor is a "dui". Grouped by the severity of the collision and sobriety of the parties.*/ 
+SELECT col.collision_severity, par.party_sobriety, COUNT(*) AS total_collisions
+FROM collisions col
+INNER JOIN parties par
+ON col.case_id = par.case_id
+WHERE col.pcf_violation_category = "dui"
+GROUP BY col.collision_severity, par.party_sobriety
+ORDER BY col.collision_severity, par.party_sobriety;
 
 
 #Victim and Party Demographics Analysis: 
@@ -121,15 +134,11 @@ WHERE col.killed_victims > 1
 
 
 
-/* 1. Whats the total amount of collisions involving alcohol?*/
-SELECT pcf_violation_category, 
-COUNT(*) AS "Alchol involved collisions"
-FROM collisions
-WHERE pcf_violation_category = "dui";
 
 
 
-/*Question 5: What is the average age of victims in different types of collisions?*/
+
+/* 1. What is the average age of victims in different types of collisions */
 SELECT col.type_of_collision, ROUND(AVG(vic.victim_age), 0) AS "average victims age"
 FROM collisions col
 INNER JOIN victims vic
@@ -144,7 +153,7 @@ WHERE "vehicle_types" IS NOT NULL
 GROUP BY chp_vehicle_type_at_fault, statewide_vehicle_type_at_fault;
 
 
-
+ 
 /*Question 8: Which types of vehicles are most commonly involved in collisions for each jurisdiction?*/
 SELECT col.jurisdiction, col.statewide_vehicle_type_at_fault AS "vehicle type at fault", COUNT(*) AS "collision count"
 FROM collisions col
@@ -155,14 +164,7 @@ GROUP BY col.jurisdiction, par.statewide_vehicle_type
 ORDER BY col.jurisdiction, "collision count" DESC
 LIMIT 500;
 
-/*Question 9: What is the relationship between party sobriety and collision severity?*/ 
-SELECT col.collision_severity, par.party_sobriety, COUNT(*) AS total_collisions
-FROM collisions col
-INNER JOIN parties par
-ON col.case_id = par.case_id
-WHERE col.pcf_violation_category = "dui"
-GROUP BY col.collision_severity, par.party_sobriety
-ORDER BY col.collision_severity, par.party_sobriety;
+
 
 
 
@@ -203,13 +205,3 @@ WHERE par.at_fault = 1 AND "pcf" IS NOT NULL
 GROUP BY "pcf"
 ORDER BY collision_count DESC
 LIMIT 5;
-
-
-
-
-
-
-
-
-
-
