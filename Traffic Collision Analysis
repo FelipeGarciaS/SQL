@@ -125,7 +125,13 @@ ORDER BY col.collision_severity, par.party_sobriety;
 
 #Victim and Party Demographics Analysis: 
 
-
+/* 1. What is the average age of victims in different types of collisions. For this query I wanted to finds the average age of victims and the diffrent types of collisions they were involved in. Using the INNER JOIN clause I'm able to get the data from the victims table. I then grouped the results by the type of collisions so that each collision type shows its own average victim age. Finally, I used the ROUND function to make the average age a whole number for easier readability.*/
+SELECT col.type_of_collision, ROUND(AVG(vic.victim_age), 0) AS "average victims age"
+FROM collisions col
+INNER JOIN victims vic
+ON col.case_id = vic.case_id
+WHERE col.type_of_collision IS NOT NULL
+GROUP BY col.type_of_collision;
 
 
 #Vehicle Types and Jurisdiction Analysis: 
@@ -138,13 +144,7 @@ ORDER BY col.collision_severity, par.party_sobriety;
 
 
 
-/* 1. What is the average age of victims in different types of collisions */
-SELECT col.type_of_collision, ROUND(AVG(vic.victim_age), 0) AS "average victims age"
-FROM collisions col
-INNER JOIN victims vic
-ON col.case_id = vic.case_id
-WHERE col.type_of_collision IS NOT NULL
-GROUP BY col.type_of_collision;
+
 
 /*Question 6: Which vehicle types are most frequently at fault in collisions?*/
 SELECT statewide_vehicle_type_at_fault, COUNT(*) AS "fault count", chp_vehicle_type_at_fault
